@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}MedPrep MBBS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⚕️</span>
+      <span class="brand-text">MedPrep</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">⊞</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <div class="nav-section-label">SUBJECTS</div>
+      <a href="/subject/Psychiatry" class="nav-item {% if request.endpoint == 'subject' and subject_name == 'Psychiatry' %}active{% endif %}">
+        <span class="nav-icon">🧠</span>
+        <span class="nav-label">Psychiatry</span>
+      </a>
+      <a href="/subject/Anatomy" class="nav-item {% if request.endpoint == 'subject' and subject_name == 'Anatomy' %}active{% endif %}">
+        <span class="nav-icon">🦴</span>
+        <span class="nav-label">Anatomy</span>
+      </a>
+      <a href="/subject/Physiology" class="nav-item {% if request.endpoint == 'subject' and subject_name == 'Physiology' %}active{% endif %}">
+        <span class="nav-icon">❤️</span>
+        <span class="nav-label">Physiology</span>
+      </a>
+      <div class="nav-section-label">TOOLS</div>
+      <a href="/settings" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-badge">
+        <div class="user-avatar">MD</div>
+        <div class="user-info">
+          <div class="user-name">Medical Student</div>
+          <div class="user-status">MBBS Year 2</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Top bar -->
+    <header class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

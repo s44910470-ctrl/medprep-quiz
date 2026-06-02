@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz — {{ topic_name }} — MedPrep</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="quiz-body">
+
+<!-- Quiz container -->
+<div class="quiz-wrap">
+
+  <!-- Quiz Header -->
+  <header class="quiz-header">
+    <div class="quiz-header-left">
+      <a href="/topic/{{ subject_name }}/{{ topic_name }}" class="quiz-exit" id="exitBtn">✕ Exit</a>
+      <div class="quiz-breadcrumb">{{ subject_name }} › {{ topic_name }}</div>
+    </div>
+    <div class="quiz-header-center">
+      <div class="quiz-progress-wrap">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="quiz-progress-text"><span id="currentQ">1</span> / <span id="totalQ">{{ total if total > 0 else '—' }}</span></div>
+      </div>
+    </div>
+    <div class="quiz-header-right">
+      <div class="quiz-timer" id="timerBox">
+        <span class="timer-icon">⏱</span>
+        <span class="timer-val" id="timerVal">01:30</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main quiz area -->
+  <div class="quiz-main">
+
+    <!-- Question panel -->
+    <div class="quiz-question-panel">
+
+      <!-- Question top bar -->
+      <div class="question-meta-bar">
+        <span class="q-tag" id="qTag">Q 1</span>
+        <div class="q-actions">
+          <button class="q-action-btn" id="bookmarkBtn" onclick="toggleBookmark()" title="Bookmark">
+            🔖 <span id="bookmarkLabel">Bookmark</span>
+          </button>
+          <button class="q-action-btn" onclick="reportQuestion()" title="Report">⚑ Report</button>
+        </div>
+      </div>
+
+      <!-- Question text -->
+      <div class="question-text" id="questionText">
+        {% if total > 0 %}
+          Loading question…
+        {% else %}
+          <span class="demo-q">Question will appear here</span>
+          <div class="demo-note">Upload a <code>_qbank.json</code> to the <code>database/</code> folder to begin.</div>
+        {% endif %}
+      </div>
+
+      <!-- Image placeholder -->
+      <div class="question-image-box" id="imageBox">
+        <div class="img-placeholder">
+          <span class="img-ph-icon">🖼</span>
+          <span class="img-ph-text">Image placeholder<br><small>Image-based questions will display here</small></span>
+        </div>
+      </div>
+
+      <!-- MCQ Options -->
+      <div class="mcq-options" id="mcqOptions">
+        {% if total == 0 %}
+          <!-- Demo options -->
+          {% for letter, text in [('A','Option A — Demo answer choice'),('B','Option B — Demo answer choice'),('C','Option C — Demo answer choice'),('D','Option D — Demo answer choice')] %}
+          <button class="mcq-option" disabled>
+            <span class="opt-letter">{{ letter }}</span>
+            <span class="opt-text">{{ text }}</span>
+          </button>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Explanation box (shown after answer) -->
+      <div class="explanation-box" id="explanationBox" style="display:none">
+        <div class="exp-header">📝 Explanation</div>
+        <div class="exp-text" id="expText"></div>
+      </div>
+
+    </div><!-- end question-panel -->
+
+    <!-- Quiz sidebar / navigator -->
+    <div class="quiz-sidebar">
+      <div class="qnav-title">Question Navigator</div>
+      <div class="qnav-grid" id="qnavGrid">
+        {% if total > 0 %}
+          {% for i in range(total) %}
+          <button class="qnav-btn {% if i == 0 %}qnav-current{% endif %}" data-index="{{ i }}" onclick="goToQuestion({{ i }})">{{ i+1 }}</button>
+          {% endfor %}
+        {% else %}
+          {% for i in range(6) %}
+          <button class="qnav-btn qnav-demo" disabled>{{ i+1 }}</button>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div class="qnav-legend">
+        <span class="legend-item"><span class="legend-dot current"></span> Current</span>
+        <span class="legend-item"><span class="legend-dot answered"></span> Answered</span>
+        <span class="legend-item"><span class="legend-dot bookmarked"></span> Bookmarked</span>
+        <span class="legend-item"><span class="legend-dot unanswered"></span> Unanswered</span>
+      </div>
+    </div>
+
+  </div><!-- end quiz-main -->
+
+  <!-- Quiz Footer / Controls -->
+  <footer class="quiz-footer">
+    <button class="quiz-btn quiz-btn--ghost" id="prevBtn" onclick="prevQuestion()">← Previous</button>
+    <div class="quiz-footer-center">
+      <button class="quiz-btn quiz-btn--outline" id="skipBtn" onclick="skipQuestion()">Skip</button>
+    </div>
+    <div class="quiz-footer-right">
+      <button class="quiz-btn quiz-btn--primary" id="nextBtn" onclick="nextQuestion()">Next →</button>
+      <button class="quiz-btn quiz-btn--danger" id="submitBtn" onclick="confirmSubmit()" style="display:none">Submit Quiz</button>
+    </div>
+  </footer>
+
+</div><!-- end quiz-wrap -->
+
+<!-- Submit confirmation modal -->
+<div class="modal-overlay" id="submitModal" style="display:none">
+  <div class="modal">
+    <div class="modal-icon">📋</div>
+    <h2 class="modal-title">Submit Quiz?</h2>
+    <p class="modal-body">Are you sure you want to submit? You cannot change answers after submission.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn--ghost" onclick="closeModal()">Continue Quiz</button>
+      <button class="modal-btn modal-btn--primary" onclick="submitQuiz()">Submit Now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Quiz State ─────────────────────────────────────────────────────────────────
+const SUBJECT = "{{ subject_name }}";
+const TOPIC = "{{ topic_name | safe }}".replace(/&amp;/g, "&");
+const TOTAL   = {{ total }};
+let questions    = [];
+let current      = 0;
+let answers      = {};     // { index: selected_option_index }
+let bookmarks    = new Set(JSON.parse(localStorage.getItem('bookmarks_' + TOPIC) || '[]'));
+let timerInterval;
+let timeLeft     = 90;
+let timerRunning = false;
+
+// ── Load questions ─────────────────────────────────────────────────────────────
+async function loadQuestions() {
+  try {
+    if (TOTAL === 0) return;
+
+    const res = await fetch('/api/questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        subject: SUBJECT,
+        topic: TOPIC
+      })
+    });
+
+    const data = await res.json();
+    questions = data.questions || [];
+
+    if (!questions.length) {
+      document.getElementById('questionText').textContent = 'No questions found';
+      return;
+    }
+
+    renderQuestion(0);
+    startTimer();
+  } catch (err) {
+    console.error('LOAD ERROR:', err);
+    document.getElementById('questionText').textContent = 'Error loading questions';
+  }
+}
+
+// ── Render question ─────────────────────────────────────────────────────────────
+function renderQuestion(idx) {
+  if (!questions.length) return;
+  current = idx;
+  const q = questions[idx];
+
+  document.getElementById('qTag').textContent = `Q ${idx + 1}`;
+  document.getElementById('currentQ').textContent = idx + 1;
+  document.getElementById('totalQ').textContent   = questions.length;
+  document.getElementById('questionText').textContent = q.question || '';
+  document.getElementById('progressFill').style.width = ((idx + 1) / questions.length * 100) + '%';
+
+// Image
+const imageBox = document.getElementById('imageBox');
+
+if (q.image) {
+    imageBox.innerHTML = `
+        <img src="${q.image}"
+             alt="Question image"
+             class="q-image">
+    `;
+
+    imageBox.style.display = 'flex';
+} else {
+    imageBox.style.display = 'none';
+}
+  // Options
+  const container = document.getElementById('mcqOptions');
+  container.innerHTML = '';
+  const letters = ['A','B','C','D','E'];
+  (q.options || []).forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mcq-option';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span><span class="opt-text">${opt}</span>`;
+    if (answers[idx] !== undefined) {
+      btn.disabled = true;
+      if (i === q.answer) btn.classList.add('opt-correct');
+      else if (i === answers[idx]) btn.classList.add('opt-wrong');
+    } else {
+      btn.onclick = () => selectAnswer(idx, i, q.answer);
+    }
+    if (answers[idx] === i) btn.classList.add('opt-selected');
+    container.appendChild(btn);
+  });
+
+  // Explanation
+  const expBox = document.getElementById('explanationBox');
+  if (answers[idx] !== undefined && q.explanation) {
+    document.getElementById('expText').textContent = q.explanation;
+    expBox.style.display = 'block';
+  } else {
+    expBox.style.display = 'none';
+  }
+
+  // Bookmark state
+  const bl = document.getElementById('bookmarkLabel');
+  document.getElementById('bookmarkBtn').classList.toggle('bookmarked', bookmarks.has(idx));
+  if (bl) bl.textContent = bookmarks.has(idx) ? 'Saved' : 'Bookmark';
+
+  // Nav buttons
+  updateNavGrid();
+  document.getElementById('prevBtn').disabled = idx === 0;
+  const isLast = idx === questions.length - 1;
+  document.getElementById('nextBtn').style.display = isLast ? 'none' : 'inline-flex';
+  document.getElementById('submitBtn').style.display = isLast ? 'inline-flex' : 'none';
+
+  resetTimer();
+}
+
+function selectAnswer(qIdx, optIdx, correct) {
+  answers[qIdx] = optIdx;
+  renderQuestion(qIdx);
+}
+
+function nextQuestion()    { if (current < questions.length - 1) renderQuestion(current + 1); }
+function prevQuestion()    { if (current > 0) renderQuestion(current - 1); }
+function skipQuestion()    { nextQuestion(); }
+function goToQuestion(idx) { renderQuestion(idx); }
+
+function toggleBookmark() {
+  if (bookmarks.has(current)) bookmarks.delete(current);
+  else bookmarks.add(current);
+  localStorage.setItem('bookmarks_' + TOPIC, JSON.stringify([...bookmarks]));
+  renderQuestion(current);
+}
+
+function updateNavGrid() {
+  document.querySelectorAll('.qnav-btn').forEach((btn, i) => {
+    btn.classList.remove('qnav-current','qnav-answered','qnav-bookmarked');
+    if (i === current) btn.classList.add('qnav-current');
+    else if (answers[i] !== undefined) btn.classList.add('qnav-answered');
+    if (bookmarks.has(i)) btn.classList.add('qnav-bookmarked');
+  });
+}
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+function startTimer() {
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) { clearInterval(timerInterval); autoNext(); }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 90;
+  updateTimerDisplay();
+  if (timerRunning) startTimer();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+  const s = (timeLeft % 60).toString().padStart(2,'0');
+  const el = document.getElementById('timerVal');
+  if (el) el.textContent = `${m}:${s}`;
+  const box = document.getElementById('timerBox');
+  if (box) box.classList.toggle('timer-warn', timeLeft <= 20);
+}
+
+function autoNext() { if (current < questions.length - 1) renderQuestion(current + 1); }
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+function confirmSubmit() { document.getElementById('submitModal').style.display = 'flex'; }
+function closeModal()    { document.getElementById('submitModal').style.display = 'none'; }
+function reportQuestion() { alert('Report feature coming soon.'); }
+
+function submitQuiz() {
+  clearInterval(timerInterval);
+  const score = Object.entries(answers).filter(([i, a]) => questions[i] && a === questions[i].answer).length;
+  window.location.href = `/result?score=${score}&total=${questions.length}&subject=${encodeURIComponent(SUBJECT)}&topic=${encodeURIComponent(TOPIC)}`;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+async function loadQuestions() {
+  try {
+    console.log("Loading questions...");
+    console.log("SUBJECT =", SUBJECT);
+    console.log("TOPIC =", TOPIC);
+
+    const res = await fetch('/api/questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        subject: SUBJECT,
+        topic: TOPIC
+      })
+    });
+
+    console.log("Response:", res);
+
+    const data = await res.json();
+    console.log("Data:", data);
+
+    questions = data.questions || [];
+
+    if (!questions.length) {
+      document.getElementById('questionText').textContent =
+        'No questions found';
+      return;
+    }
+
+    renderQuestion(0);
+    startTimer();
+
+  } catch (err) {
+    console.error("LOAD ERROR:", err);
+    document.getElementById('questionText').textContent =
+      'Error loading questions';
+  }
+}
+
+// Exit confirmation
+document.getElementById('exitBtn').addEventListener('click', function(e) {
+  if (questions.length > 0 && Object.keys(answers).length > 0) {
+    if (!confirm('Exit quiz? Your progress will be lost.')) {
+      e.preventDefault();
+    }
+  }
+});
+
+loadQuestions();
+</script>
+</body>
+</html>

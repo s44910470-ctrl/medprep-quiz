@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}{{ topic_name }} — MedPrep{% endblock %}
+{% block page_title %}{{ topic_name }}{% endblock %}
+
+{% block content %}
+<div class="topic-wrap">
+
+  <div class="breadcrumb">
+    <a href="/dashboard">Dashboard</a>
+    <span>›</span>
+    <a href="/subject/{{ subject_name }}">{{ subject_name }}</a>
+    <span>›</span>
+    <span>{{ topic_name }}</span>
+  </div>
+
+  <div class="topic-hero">
+    <div class="topic-hero-left">
+      <h1 class="topic-hero-title">{{ topic_name }}</h1>
+      <p class="topic-hero-sub">{{ subject_name }} · {{ total }} Question{% if total != 1 %}s{% endif %}</p>
+    </div>
+  </div>
+
+  {% if total > 0 %}
+  <!-- Practice modes -->
+  <div class="modes-grid">
+    <a href="/quiz/{{ subject_name }}/{{ topic_name }}?mode=practice" class="mode-card mode-card--purple">
+      <div class="mode-icon">📝</div>
+      <div class="mode-title">Practice Mode</div>
+      <div class="mode-desc">Answer at your own pace. See explanations after each question.</div>
+    </a>
+    <a href="/quiz/{{ subject_name }}/{{ topic_name }}?mode=timed" class="mode-card mode-card--teal">
+      <div class="mode-icon">⏱</div>
+      <div class="mode-title">Timed Mode</div>
+      <div class="mode-desc">1.5 minutes per question. Simulates exam pressure.</div>
+    </a>
+    <a href="/quiz/{{ subject_name }}/{{ topic_name }}?mode=review" class="mode-card mode-card--orange">
+      <div class="mode-icon">🔖</div>
+      <div class="mode-title">Review Bookmarks</div>
+      <div class="mode-desc">Go through your saved/bookmarked questions only.</div>
+    </a>
+  </div>
+
+  <!-- Question list preview -->
+  <div class="section-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">All Questions ({{ total }})</h2>
+    </div>
+    <div class="question-list-preview">
+      {% for q in questions[:10] %}
+      <div class="q-preview-row">
+        <span class="q-num">Q{{ loop.index }}</span>
+        <span class="q-text">{{ q.get('question','')[:90] }}{% if q.get('question','')|length > 90 %}…{% endif %}</span>
+      </div>
+      {% endfor %}
+      {% if total > 10 %}
+      <div class="q-more">+ {{ total - 10 }} more questions</div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="topic-empty">
+    <div class="empty-big-icon">📭</div>
+    <h2>No Questions Yet</h2>
+    <p>Upload a <code>{{ subject_name | lower }}_qbank.json</code> to the <code>database/</code> folder to load questions for this topic.</p>
+    <div class="json-format-hint">
+      <div class="hint-title">Expected JSON format:</div>
+      <pre class="json-pre">{{ '{' }}
+  "subject": "{{ subject_name }}",
+  "topics": {{ '{' }}
+    "{{ topic_name }}": [
+      {{ '{' }}
+        "question": "Which neurotransmitter is...",
+        "options": ["A. Dopamine", "B. Serotonin", "C. GABA", "D. Glutamate"],
+        "answer": 0,
+        "explanation": "Dopamine is...",
+        "image": null
+      {{ '}' }}
+    ]
+  {{ '}' }}
+{{ '}' }}</pre>
+    </div>
+    <a href="/subject/{{ subject_name }}" class="btn-back">← Back to {{ subject_name }}</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
