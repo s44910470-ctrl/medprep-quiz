@@ -6,7 +6,7 @@
   <title>MedPrep — MBBS Quiz Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="css/style.css">
   <style>
     /* Landing-specific overrides */
     body { overflow-x: hidden; }
@@ -105,7 +105,7 @@
       <div class="hero-badge">⚕️ Personal MBBS Platform</div>
       <h1 class="hero-title">Master Medicine,<br/>One Question<br/>at a Time.</h1>
       <p class="hero-sub">Your personal MBBS question bank. Structured topics, instant feedback, and smart performance tracking.</p>
-      <a href="/dashboard" class="hero-cta">Open Dashboard →</a>
+      <a href="dashboard.html" class="hero-cta">Open Dashboard →</a>
       <div class="hero-stats">
         <div class="stat-item"><div class="stat-num" id="lTotalQ">—</div><div class="stat-lbl">Questions</div></div>
         <div class="stat-item"><div class="stat-num" id="lSubjects">3</div><div class="stat-lbl">Subjects</div></div>
@@ -113,16 +113,25 @@
       </div>
     </div>
     <div class="subjects-preview">
-      <a href="/subject/Psychiatry" class="prev-chip">🧠 Psychiatry</a>
-      <a href="/subject/Anatomy" class="prev-chip">🦴 Anatomy</a>
-      <a href="/subject/Physiology" class="prev-chip">❤️ Physiology</a>
+      <a href="subject.html?subject=Psychiatry" class="prev-chip">🧠 Psychiatry</a>
+      <a href="subject.html?subject=Anatomy" class="prev-chip">🦴 Anatomy</a>
+      <a href="subject.html?subject=Physiology" class="prev-chip">❤️ Physiology</a>
     </div>
   </div>
   <script>
-    fetch('/api/stats').then(r=>r.json()).then(d=>{
-      document.getElementById('lTotalQ').textContent = d.total_questions || '0';
-      document.getElementById('lSubjects').textContent = d.subjects_count || '3';
-    });
+    // Static GitHub Pages fallback (no backend/API needed)
+    const totalQuestions = localStorage.getItem('total_questions') || '0';
+    const totalSubjects = localStorage.getItem('subjects_count') || '3';
+    const totalTopics = localStorage.getItem('topics_count') || '18+';
+
+    const totalQEl = document.getElementById('lTotalQ');
+    const subjectsEl = document.getElementById('lSubjects');
+    const topicsEl = document.getElementById('lTopics');
+
+    if (totalQEl) totalQEl.textContent = totalQuestions;
+    if (subjectsEl) subjectsEl.textContent = totalSubjects;
+    if (topicsEl) topicsEl.textContent = totalTopics;
+
     // apply saved theme
     const t = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', t);
