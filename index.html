@@ -1,131 +1,1152 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MedPrep — MBBS Quiz Platform</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta name="description" content="MedPrep single-file MBBS quiz platform for GitHub Pages.">
   <style>
-    /* Landing-specific overrides */
-    body { overflow-x: hidden; }
-    .landing-wrap {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      background: var(--bg-primary);
+    :root{
+      --bg:#0b1020;
+      --bg2:#0f1730;
+      --card:#121a33;
+      --card2:#151f3d;
+      --border:rgba(255,255,255,.10);
+      --text:#eef2ff;
+      --muted:#9aa7c7;
+      --accent:#7c7cff;
+      --accent2:#35d0ff;
+      --good:#32d583;
+      --bad:#ff6b6b;
+      --warn:#ffb020;
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+      --radius:22px;
     }
-    .landing-bg {
-      position: fixed; inset: 0; z-index: 0;
+    html[data-theme="light"]{
+      --bg:#f5f7ff;
+      --bg2:#eef2ff;
+      --card:#ffffff;
+      --card2:#fafbff;
+      --border:rgba(21,30,60,.10);
+      --text:#11162b;
+      --muted:#5c688a;
+      --shadow:0 18px 45px rgba(23,31,72,.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background:
-        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(108,99,255,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,212,255,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,107,107,0.07) 0%, transparent 60%);
-      pointer-events: none;
+        radial-gradient(circle at 20% 20%, rgba(124,124,255,.22), transparent 28%),
+        radial-gradient(circle at 80% 80%, rgba(53,208,255,.14), transparent 25%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color:var(--text);
+      min-height:100vh;
+      overflow-x:hidden;
     }
-    .landing-grid {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(108,99,255,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(108,99,255,0.06) 1px, transparent 1px);
-      background-size: 48px 48px;
+    a{color:inherit;text-decoration:none}
+    button,input,select{font:inherit}
+    .grid-bg{
+      position:fixed; inset:0; pointer-events:none; opacity:.25;
+      background-image:linear-gradient(rgba(124,124,255,.10) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(124,124,255,.10) 1px, transparent 1px);
+      background-size:44px 44px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.8), rgba(0,0,0,.15));
     }
-    .landing-hero {
-      position: relative; z-index: 1;
-      text-align: center; padding: 2rem 1.5rem;
-      max-width: 700px; width: 100%;
-      animation: fadeInUp 0.8s ease both;
+    .app{
+      width:min(1200px, 100%);
+      margin:0 auto;
+      padding:18px;
+      position:relative;
+      z-index:1;
     }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: .5rem;
-      background: rgba(108,99,255,0.15);
-      border: 1px solid rgba(108,99,255,0.4);
-      border-radius: 100px; padding: .35rem 1rem;
-      font-size: .78rem; font-weight: 600; color: var(--accent);
-      letter-spacing: .06em; text-transform: uppercase; margin-bottom: 1.8rem;
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:16px 18px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      backdrop-filter: blur(14px);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      position:sticky;
+      top:12px;
+      z-index:20;
     }
-    .hero-title {
-      font-size: clamp(2.6rem, 7vw, 4.5rem);
-      font-weight: 800; line-height: 1.08;
-      margin: 0 0 1.2rem;
-      background: linear-gradient(135deg, #fff 30%, rgba(108,99,255,.9) 70%, #00d4ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    .brand{display:flex; align-items:center; gap:12px; min-width:0}
+    .brand-badge{
+      width:42px; height:42px; border-radius:14px;
+      display:grid; place-items:center;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      color:#fff; font-size:1.1rem; font-weight:800;
+      box-shadow:0 10px 24px rgba(124,124,255,.35);
+      flex:none;
     }
-    .hero-sub {
-      font-size: 1.1rem; color: var(--text-muted); max-width: 480px; margin: 0 auto 2.5rem;
-      line-height: 1.7; font-weight: 400;
+    .brand-text{min-width:0}
+    .brand-title{margin:0;font-size:1.05rem;font-weight:800;letter-spacing:.2px}
+    .brand-sub{margin:2px 0 0;color:var(--muted);font-size:.86rem}
+    .top-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+    .chip,.btn{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease, background .15s ease;
     }
-    .hero-cta {
-      display: inline-flex; align-items: center; gap: .6rem;
-      background: var(--accent); color: #fff;
-      padding: .9rem 2.2rem; border-radius: 12px;
-      font-size: 1rem; font-weight: 600; text-decoration: none;
-      transition: transform .2s, box-shadow .2s;
-      box-shadow: 0 8px 32px rgba(108,99,255,.35);
+    .chip:hover,.btn:hover{transform:translateY(-1px); border-color:rgba(124,124,255,.45)}
+    .btn-primary{
+      border:none;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      color:#fff;
+      box-shadow:0 12px 28px rgba(124,124,255,.25);
     }
-    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(108,99,255,.5); }
-    .hero-stats {
-      display: flex; gap: 2.5rem; justify-content: center; margin-top: 3rem;
-      flex-wrap: wrap;
+    .btn-danger{background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.2); color:var(--bad)}
+    .layout{
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:16px;
+      margin-top:16px;
     }
-    .stat-item { text-align: center; }
-    .stat-num {
-      font-size: 2rem; font-weight: 700; color: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace;
+    .side, .panel{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      backdrop-filter: blur(14px);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
     }
-    .stat-lbl { font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
-    .subjects-preview {
-      position: relative; z-index: 1;
-      display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
-      padding: 1.5rem; animation: fadeInUp 0.8s ease .15s both;
+    .side{padding:14px; position:sticky; top:92px; height:fit-content}
+    .nav-group{margin-bottom:12px}
+    .nav-label{
+      color:var(--muted); font-size:.75rem; letter-spacing:.12em; font-weight:700;
+      text-transform:uppercase; margin:10px 10px 8px;
     }
-    .prev-chip {
-      display: flex; align-items: center; gap: .5rem;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 10px; padding: .6rem 1.1rem;
-      font-size: .88rem; color: var(--text-secondary); font-weight: 500;
-      transition: border-color .2s, background .2s;
+    .nav-item{
+      display:flex; align-items:center; gap:12px;
+      width:100%; padding:12px 14px; margin:6px 0;
+      border-radius:14px;
+      color:var(--text);
+      border:1px solid transparent;
+      background:transparent;
+      cursor:pointer;
+      text-align:left;
     }
-    .prev-chip:hover { border-color: var(--accent); background: rgba(108,99,255,.08); }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .nav-item:hover,.nav-item.active{
+      background:rgba(124,124,255,.12);
+      border-color:rgba(124,124,255,.22);
+    }
+    .nav-icon{width:24px;text-align:center}
+    .side-footer{
+      margin-top:14px; padding:14px; border-radius:18px;
+      background:linear-gradient(180deg, rgba(124,124,255,.10), rgba(53,208,255,.05));
+      border:1px solid var(--border);
+    }
+    .user-card{display:flex; gap:12px; align-items:center}
+    .avatar{
+      width:42px; height:42px; border-radius:14px;
+      display:grid; place-items:center;
+      background:rgba(255,255,255,.08);
+      font-weight:800;
+    }
+    .user-name{font-weight:700}
+    .user-meta{color:var(--muted); font-size:.86rem; margin-top:2px}
+    .content{min-width:0}
+    .page{display:none}
+    .page.active{display:block}
+    .hero{
+      padding:28px;
+      border:1px solid var(--border);
+      background:linear-gradient(135deg, rgba(124,124,255,.16), rgba(53,208,255,.08));
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .hero::after{
+      content:"";
+      position:absolute; inset:auto -60px -60px auto;
+      width:220px; height:220px; border-radius:50%;
+      background:radial-gradient(circle, rgba(255,255,255,.14), transparent 65%);
+      filter:blur(6px);
+    }
+    .hero-tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      font-size:.8rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-weight:700;
+    }
+    .hero h1{
+      margin:18px 0 12px;
+      font-size:clamp(2.2rem, 5vw, 4.8rem);
+      line-height:1.02;
+      letter-spacing:-.03em;
+      max-width:12ch;
+    }
+    .hero p{
+      margin:0;
+      max-width:56ch;
+      color:var(--muted);
+      font-size:1.02rem;
+      line-height:1.7;
+    }
+    .hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:22px}
+    .stats{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap:14px;
+    }
+    .stat{
+      padding:18px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:22px;
+    }
+    .stat-val{font-size:1.8rem;font-weight:800}
+    .stat-lbl{color:var(--muted); font-size:.88rem; margin-top:4px}
+    .section{
+      margin-top:16px;
+      padding:20px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .section-head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+    .section-title{margin:0;font-size:1.15rem}
+    .section-sub{margin:4px 0 0;color:var(--muted);font-size:.92rem}
+    .subject-grid, .topic-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:14px;
+    }
+    .card{
+      padding:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:22px;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease;
+      min-height:132px;
+    }
+    .card:hover{transform:translateY(-2px); border-color:rgba(124,124,255,.40)}
+    .card-icon{
+      width:42px; height:42px; border-radius:14px;
+      display:grid; place-items:center;
+      background:rgba(124,124,255,.14);
+      margin-bottom:12px;
+      font-size:1.2rem;
+    }
+    .card-title{font-weight:800; font-size:1.05rem; margin-bottom:6px}
+    .card-text{color:var(--muted); font-size:.92rem; line-height:1.5}
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:.82rem;
+      margin-top:10px;
+    }
+    .searchbar{
+      width:min(360px, 100%);
+      display:flex; align-items:center; gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+    }
+    .searchbar input{
+      width:100%; background:transparent; color:var(--text);
+      border:none; outline:none;
+    }
+    .topic-topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .crumbs{color:var(--muted); font-size:.9rem}
+    .quiz-shell{
+      display:grid;
+      grid-template-columns: 1fr 260px;
+      gap:16px;
+    }
+    .quiz-main,.quiz-side{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:18px;
+    }
+    .quiz-meta{
+      display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .qtag{
+      display:inline-flex; align-items:center;
+      padding:7px 10px;
+      border-radius:999px;
+      background:rgba(124,124,255,.14);
+      border:1px solid rgba(124,124,255,.22);
+      font-size:.82rem;
+      font-weight:700;
+    }
+    .progress{
+      width:100%; height:10px; border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden; margin-top:12px;
+    }
+    .progress > div{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2))}
+    .question{
+      font-size:1.2rem; line-height:1.65; margin:16px 0 14px;
+      white-space:pre-wrap;
+    }
+    .qimg{
+      margin:16px 0;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px dashed var(--border);
+      background:rgba(0,0,0,.10);
+      display:none;
+    }
+    .qimg img{display:block; width:100%; height:auto}
+    .options{display:grid; gap:10px; margin-top:10px}
+    .opt{
+      width:100%; text-align:left;
+      padding:14px 14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      cursor:pointer;
+      display:flex; gap:12px; align-items:flex-start;
+    }
+    .opt:hover{border-color:rgba(124,124,255,.40)}
+    .opt .letter{
+      width:28px; height:28px; border-radius:999px; flex:none;
+      display:grid; place-items:center;
+      background:rgba(124,124,255,.16);
+      font-weight:800;
+    }
+    .opt.correct{border-color:rgba(50,213,131,.6); background:rgba(50,213,131,.10)}
+    .opt.wrong{border-color:rgba(255,107,107,.6); background:rgba(255,107,107,.10)}
+    .opt.selected{outline:2px solid rgba(124,124,255,.35)}
+    .explain{
+      margin-top:14px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(50,213,131,.22);
+      background:rgba(50,213,131,.08);
+      display:none;
+      white-space:pre-wrap;
+      line-height:1.65;
+    }
+    .quiz-nav{
+      display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;
+    }
+    .qn{
+      aspect-ratio:1/1;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:700;
+    }
+    .qn.current{background:rgba(124,124,255,.20); border-color:rgba(124,124,255,.45)}
+    .qn.answered{background:rgba(50,213,131,.15); border-color:rgba(50,213,131,.35)}
+    .qn.bookmarked{box-shadow:inset 0 0 0 2px rgba(255,176,32,.45)}
+    .quiz-footer{
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      margin-top:16px;
+    }
+    .result{
+      text-align:center;
+      padding:28px;
+    }
+    .ring{
+      width:220px; height:220px; margin:20px auto;
+      border-radius:50%;
+      display:grid; place-items:center;
+      background:
+        radial-gradient(circle at center, var(--bg) 58%, transparent 59%),
+        conic-gradient(var(--accent) 0deg, var(--accent2) 120deg, #6f7cff 240deg, #ff6b6b 360deg);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+    }
+    .ring-inner{
+      width:170px; height:170px; border-radius:50%;
+      background:var(--card);
+      display:grid; place-items:center;
+      border:1px solid var(--border);
+    }
+    .score{font-size:2.4rem;font-weight:900}
+    .muted{color:var(--muted)}
+    .settings-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:14px;
+    }
+    .setting-row{
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      padding:14px 0; border-bottom:1px solid var(--border);
+    }
+    .setting-row:last-child{border-bottom:none}
+    .setting-label{font-weight:700}
+    .setting-desc{font-size:.88rem;color:var(--muted);margin-top:4px}
+    .toggle{
+      width:54px;height:32px;border-radius:999px;background:rgba(255,255,255,.10);
+      border:1px solid var(--border); position:relative; cursor:pointer; flex:none;
+    }
+    .toggle::after{
+      content:""; position:absolute; width:24px; height:24px; border-radius:50%;
+      top:3px; left:3px; background:#fff; transition:transform .18s ease;
+    }
+    .toggle.on{background:rgba(124,124,255,.35)}
+    .toggle.on::after{transform:translateX(22px)}
+    .login{
+      position:fixed; inset:0; z-index:50;
+      display:grid; place-items:center;
+      background:rgba(5,8,16,.75);
+      backdrop-filter:blur(14px);
+      padding:18px;
+    }
+    .login-card{
+      width:min(420px, 100%);
+      border-radius:28px;
+      padding:22px;
+      background:var(--card);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+    }
+    .login-card h2{margin:0 0 8px}
+    .login-card p{margin:0 0 18px; color:var(--muted); line-height:1.6}
+    .login-card input{
+      width:100%; padding:14px 16px; border-radius:16px;
+      border:1px solid var(--border); background:rgba(255,255,255,.04);
+      color:var(--text); outline:none;
+    }
+    .login-card .btn{width:100%; margin-top:12px}
+    .small{font-size:.85rem;color:var(--muted)}
+    .hidden{display:none !important}
+    @media (max-width: 1080px){
+      .layout{grid-template-columns:1fr}
+      .side{position:static}
+      .subject-grid, .topic-grid, .stats, .settings-grid, .quiz-shell{grid-template-columns:1fr}
+    }
+    @media (max-width: 720px){
+      .topbar{align-items:flex-start}
+      .top-actions{width:100%; justify-content:space-between}
+      .hero{padding:22px}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .subject-grid,.topic-grid{grid-template-columns:1fr}
+      .quiz-nav{grid-template-columns:repeat(6,1fr)}
+      .quiz-shell{grid-template-columns:1fr}
     }
   </style>
 </head>
 <body>
-  <div class="landing-bg"></div>
-  <div class="landing-grid"></div>
-  <div class="landing-wrap">
-    <div class="landing-hero">
-      <div class="hero-badge">⚕️ Personal MBBS Platform</div>
-      <h1 class="hero-title">Master Medicine,<br/>One Question<br/>at a Time.</h1>
-      <p class="hero-sub">Your personal MBBS question bank. Structured topics, instant feedback, and smart performance tracking.</p>
-      <a href="/dashboard" class="hero-cta">Open Dashboard →</a>
-      <div class="hero-stats">
-        <div class="stat-item"><div class="stat-num" id="lTotalQ">—</div><div class="stat-lbl">Questions</div></div>
-        <div class="stat-item"><div class="stat-num" id="lSubjects">3</div><div class="stat-lbl">Subjects</div></div>
-        <div class="stat-item"><div class="stat-num" id="lTopics">18+</div><div class="stat-lbl">Topics</div></div>
+<div class="grid-bg"></div>
+
+<div class="login" id="loginOverlay">
+  <div class="login-card">
+    <div class="hero-tag">🔐 Private access</div>
+    <h2>Enter the shared password</h2>
+    <p>One password for all users. After login, your progress stays on this browser unless you connect a database later.</p>
+    <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password" />
+    <button class="btn btn-primary" id="loginBtn">Continue</button>
+    <div class="small" style="margin-top:10px">Password is set in the <code>const APP_PASSWORD</code> line.</div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-badge">⚕️</div>
+      <div class="brand-text">
+        <div class="brand-title">MedPrep</div>
+        <div class="brand-sub">Single-file MBBS quiz platform</div>
       </div>
     </div>
-    <div class="subjects-preview">
-      <a href="/subject/Psychiatry" class="prev-chip">🧠 Psychiatry</a>
-      <a href="/subject/Anatomy" class="prev-chip">🦴 Anatomy</a>
-      <a href="/subject/Physiology" class="prev-chip">❤️ Physiology</a>
+    <div class="top-actions">
+      <button class="chip" id="themeBtn">🌙 Theme</button>
+      <button class="chip" id="homeBtn">Home</button>
+      <button class="btn btn-primary" id="startBtn">Start Quiz</button>
     </div>
+  </header>
+
+  <div class="layout">
+    <aside class="side">
+      <div class="nav-group">
+        <div class="nav-label">Navigate</div>
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">⊞</span> Dashboard</button>
+        <button class="nav-item" data-page="subjects"><span class="nav-icon">📚</span> Subjects</button>
+        <button class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span> Settings</button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Quick subjects</div>
+        <button class="nav-item quick-subject" data-subject="Psychiatry"><span class="nav-icon">🧠</span> Psychiatry</button>
+        <button class="nav-item quick-subject" data-subject="Anatomy"><span class="nav-icon">🦴</span> Anatomy</button>
+        <button class="nav-item quick-subject" data-subject="Physiology"><span class="nav-icon">❤️</span> Physiology</button>
+      </div>
+      <div class="side-footer">
+        <div class="user-card">
+          <div class="avatar">MD</div>
+          <div>
+            <div class="user-name">Medical Student</div>
+            <div class="user-meta" id="progressSummary">0 answered • 0% accuracy</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- Dashboard -->
+      <section class="page active" id="page-dashboard">
+        <div class="hero">
+          <div class="hero-tag">Personal MBBS Platform</div>
+          <h1>Master Medicine, One Question at a Time.</h1>
+          <p>Your question bank, now in one GitHub Pages file. The old Flask routes and API calls have been collapsed into hash-based views so there is no backend dependency.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="goDashboardQuiz">Open Quiz</button>
+            <button class="btn" data-page="subjects">Browse Subjects</button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="stat-val" id="statQuestions">0</div><div class="stat-lbl">Questions loaded</div></div>
+          <div class="stat"><div class="stat-val" id="statSubjects">3</div><div class="stat-lbl">Subjects</div></div>
+          <div class="stat"><div class="stat-val" id="statTopics">0</div><div class="stat-lbl">Topics</div></div>
+          <div class="stat"><div class="stat-val" id="statAccuracy">0%</div><div class="stat-lbl">Accuracy</div></div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Continue learning</h2>
+              <div class="section-sub">Pick a subject and jump into its topics.</div>
+            </div>
+          </div>
+          <div class="subject-grid" id="subjectCards"></div>
+        </div>
+      </section>
+
+      <!-- Subjects -->
+      <section class="page" id="page-subjects">
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Subjects</h2>
+              <div class="section-sub">Choose a subject to view its topics.</div>
+            </div>
+            <div class="searchbar">
+              <span>⌕</span>
+              <input id="subjectSearch" placeholder="Search subject..." />
+            </div>
+          </div>
+          <div class="subject-grid" id="subjectsGrid"></div>
+        </div>
+
+        <div class="section hidden" id="topicsSection">
+          <div class="topic-topbar">
+            <div>
+              <div class="crumbs" id="topicCrumbs">Subjects ›</div>
+              <h2 class="section-title" id="topicSubjectTitle">Topic list</h2>
+              <div class="section-sub">Open a topic to start a quiz.</div>
+            </div>
+            <button class="btn" id="backToSubjects">Back to subjects</button>
+          </div>
+          <div class="topic-grid" id="topicsGrid"></div>
+        </div>
+      </section>
+
+      <!-- Quiz -->
+      <section class="page" id="page-quiz">
+        <div class="section">
+          <div class="topic-topbar">
+            <div>
+              <div class="crumbs" id="quizCrumbs">Quiz</div>
+              <h2 class="section-title" id="quizTitle">Quiz</h2>
+              <div class="section-sub">Answer, bookmark, and submit when ready.</div>
+            </div>
+            <button class="btn" id="exitQuizBtn">Exit Quiz</button>
+          </div>
+
+          <div class="quiz-shell">
+            <div class="quiz-main">
+              <div class="quiz-meta">
+                <span class="qtag" id="qTag">Q 1</span>
+                <div class="muted" id="timerText">⏱ 01:30</div>
+              </div>
+              <div class="progress"><div id="progressFill"></div></div>
+              <div class="question" id="questionText">Question text</div>
+              <div class="qimg" id="questionImageBox"></div>
+              <div class="options" id="optionsBox"></div>
+              <div class="explain" id="explainBox"></div>
+              <div class="quiz-footer">
+                <button class="btn" id="prevQ">← Previous</button>
+                <button class="btn" id="bookmarkQ">🔖 Bookmark</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap">
+                  <button class="btn" id="nextQ">Next →</button>
+                  <button class="btn btn-primary hidden" id="submitQ">Submit Quiz</button>
+                </div>
+              </div>
+            </div>
+            <aside class="quiz-side">
+              <div class="section-head" style="margin-bottom:12px">
+                <div>
+                  <div class="section-title" style="font-size:1rem">Navigator</div>
+                  <div class="section-sub">Current / answered / bookmarked</div>
+                </div>
+              </div>
+              <div class="quiz-nav" id="navigator"></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- Result -->
+      <section class="page" id="page-result">
+        <div class="section result">
+          <div class="hero-tag">Quiz result</div>
+          <h2 class="section-title" id="resultTitle" style="font-size:1.8rem;margin-top:14px">Done</h2>
+          <div class="ring"><div class="ring-inner"><div><div class="score" id="resultScore">0%</div><div class="muted">accuracy</div></div></div></div>
+          <div class="stats" style="margin-top:0">
+            <div class="stat"><div class="stat-val" id="resCorrect">0</div><div class="stat-lbl">Correct</div></div>
+            <div class="stat"><div class="stat-val" id="resWrong">0</div><div class="stat-lbl">Wrong</div></div>
+            <div class="stat"><div class="stat-val" id="resTotal">0</div><div class="stat-lbl">Total</div></div>
+            <div class="stat"><div class="stat-val" id="resPct">0%</div><div class="stat-lbl">Accuracy</div></div>
+          </div>
+          <div class="hero-actions" style="justify-content:center">
+            <button class="btn btn-primary" id="retryBtn">Retry Topic</button>
+            <button class="btn" data-page="dashboard">Dashboard</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="page" id="page-settings">
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Settings</h2>
+              <div class="section-sub">Local preferences are stored in this browser.</div>
+            </div>
+          </div>
+          <div class="settings-grid">
+            <div class="section">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Dark mode</div>
+                  <div class="setting-desc">Switch the app theme.</div>
+                </div>
+                <div class="toggle on" id="themeToggle"></div>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Timer per question</div>
+                  <div class="setting-desc">Seconds allowed for each question.</div>
+                </div>
+                <select id="timeSelect" class="btn">
+                  <option value="60">60 seconds</option>
+                  <option value="90" selected>90 seconds</option>
+                  <option value="120">120 seconds</option>
+                  <option value="180">180 seconds</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Show explanation immediately</div>
+                  <div class="setting-desc">Reveal solution after answering.</div>
+                </div>
+                <div class="toggle on" id="expToggle"></div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Clear progress</div>
+                  <div class="setting-desc">Delete bookmarks, scores, and attempts from this browser.</div>
+                </div>
+                <button class="btn btn-danger" id="clearDataBtn">Clear Data</button>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">App password</div>
+                  <div class="setting-desc">Change this in the file constant <code>APP_PASSWORD</code>.</div>
+                </div>
+                <div class="pill">Shared password</div>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Data source</div>
+                  <div class="setting-desc">You can later replace the demo data with your own JSON bank.</div>
+                </div>
+                <div class="pill">Embedded demo + localStorage</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
-  <script>
-    fetch('/api/stats').then(r=>r.json()).then(d=>{
-      document.getElementById('lTotalQ').textContent = d.total_questions || '0';
-      document.getElementById('lSubjects').textContent = d.subjects_count || '3';
-    });
-    // apply saved theme
-    const t = localStorage.getItem('theme') || 'dark';
+</div>
+
+<script>
+(() => {
+  const APP_PASSWORD = "Samar@111";
+
+  const data = {
+    subjects: {
+      Psychiatry: {
+        icon: "🧠",
+        color: "#7c7cff",
+        topics: {
+          Schizophrenia: [
+            { question: "Which of the following is not a contribution by Sigmund Freud?", options: ["Free association", "Introducing cocaine in psychiatry", "Psychodynamic theory", "Psychosocial theory"], answer: 3, explanation: "Psychosocial theory is associated with Erik Erikson, not Sigmund Freud.", image: "" },
+            { question: "According to Freud's topographic theory, repression functions mainly in which part of the mind?", options: ["Conscious", "Preconscious", "Unconscious", "Subconscious"], answer: 2, explanation: "Repression is an unconscious defense mechanism.", image: "" },
+            { question: "Which defense mechanism involves giving up on a goal and behaving in a more childish manner when frustrated?", options: ["Regression", "Rationalization", "Projection", "Reaction formation"], answer: 0, explanation: "Regression is a return to an earlier developmental stage when under stress.", image: "" }
+          ],
+          "Other Psychotic Disorders": [
+            { question: "A fixed false belief held despite clear contradictory evidence is called:", options: ["Hallucination", "Delusion", "Derealization", "Aphasia"], answer: 1, explanation: "A delusion is a fixed false belief.", image: "" }
+          ]
+        }
+      },
+      Anatomy: {
+        icon: "🦴",
+        color: "#ff7aa2",
+        topics: {
+          General: [
+            { question: "Anatomy sample question: the major function of red blood cells is to:", options: ["Carry oxygen", "Produce hormones", "Fight infection", "Digest protein"], answer: 0, explanation: "RBCs carry oxygen via hemoglobin.", image: "" }
+          ]
+        }
+      },
+      Physiology: {
+        icon: "❤️",
+        color: "#37d38b",
+        topics: {
+          General: [
+            { question: "Physiology sample question: the normal resting membrane potential is mainly due to:", options: ["Na+ leak", "K+ leak", "Ca2+ influx", "Cl- pump"], answer: 1, explanation: "Resting membrane potential depends largely on potassium permeability.", image: "" }
+          ]
+        }
+      }
+    }
+  };
+
+  const els = {
+    loginOverlay: document.getElementById('loginOverlay'),
+    passwordInput: document.getElementById('passwordInput'),
+    loginBtn: document.getElementById('loginBtn'),
+    themeBtn: document.getElementById('themeBtn'),
+    homeBtn: document.getElementById('homeBtn'),
+    startBtn: document.getElementById('startBtn'),
+    goDashboardQuiz: document.getElementById('goDashboardQuiz'),
+    subjectCards: document.getElementById('subjectCards'),
+    subjectsGrid: document.getElementById('subjectsGrid'),
+    subjectSearch: document.getElementById('subjectSearch'),
+    topicsSection: document.getElementById('topicsSection'),
+    topicsGrid: document.getElementById('topicsGrid'),
+    topicSubjectTitle: document.getElementById('topicSubjectTitle'),
+    topicCrumbs: document.getElementById('topicCrumbs'),
+    backToSubjects: document.getElementById('backToSubjects'),
+    quizTitle: document.getElementById('quizTitle'),
+    quizCrumbs: document.getElementById('quizCrumbs'),
+    exitQuizBtn: document.getElementById('exitQuizBtn'),
+    qTag: document.getElementById('qTag'),
+    timerText: document.getElementById('timerText'),
+    progressFill: document.getElementById('progressFill'),
+    questionText: document.getElementById('questionText'),
+    questionImageBox: document.getElementById('questionImageBox'),
+    optionsBox: document.getElementById('optionsBox'),
+    explainBox: document.getElementById('explainBox'),
+    navigator: document.getElementById('navigator'),
+    prevQ: document.getElementById('prevQ'),
+    nextQ: document.getElementById('nextQ'),
+    submitQ: document.getElementById('submitQ'),
+    bookmarkQ: document.getElementById('bookmarkQ'),
+    resultTitle: document.getElementById('resultTitle'),
+    resultScore: document.getElementById('resultScore'),
+    resCorrect: document.getElementById('resCorrect'),
+    resWrong: document.getElementById('resWrong'),
+    resTotal: document.getElementById('resTotal'),
+    resPct: document.getElementById('resPct'),
+    retryBtn: document.getElementById('retryBtn'),
+    progressSummary: document.getElementById('progressSummary'),
+    statQuestions: document.getElementById('statQuestions'),
+    statSubjects: document.getElementById('statSubjects'),
+    statTopics: document.getElementById('statTopics'),
+    statAccuracy: document.getElementById('statAccuracy'),
+    themeToggle: document.getElementById('themeToggle'),
+    expToggle: document.getElementById('expToggle'),
+    clearDataBtn: document.getElementById('clearDataBtn'),
+    timeSelect: document.getElementById('timeSelect'),
+    pageDashboard: document.getElementById('page-dashboard'),
+    pageSubjects: document.getElementById('page-subjects'),
+    pageQuiz: document.getElementById('page-quiz'),
+    pageResult: document.getElementById('page-result'),
+    pageSettings: document.getElementById('page-settings'),
+    navButtons: [...document.querySelectorAll('.nav-item')],
+    quickSubjects: [...document.querySelectorAll('.quick-subject')],
+  };
+
+  let state = {
+    subject: 'Psychiatry',
+    topic: 'Schizophrenia',
+    questions: [],
+    current: 0,
+    answers: {},
+    bookmarks: new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')),
+    timeLeft: parseInt(localStorage.getItem('time_per_q') || '90', 10),
+    timer: null,
+    explanationEnabled: localStorage.getItem('show_explanation') !== 'false'
+  };
+
+  function saveSettings() {
+    localStorage.setItem('time_per_q', String(state.timeLeft));
+    localStorage.setItem('show_explanation', String(state.explanationEnabled));
+  }
+
+  function theme() {
+    return localStorage.getItem('theme') || 'dark';
+  }
+  function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
-  </script>
+    localStorage.setItem('theme', t);
+    els.themeToggle.classList.toggle('on', t === 'dark');
+    els.themeBtn.textContent = t === 'dark' ? '🌙 Theme' : '☀️ Theme';
+  }
+  applyTheme(theme());
+
+  function allQuestionsCount() {
+    let count = 0, topics = 0;
+    for (const s of Object.values(data.subjects)) {
+      for (const qs of Object.values(s.topics)) {
+        topics++;
+        count += qs.length;
+      }
+    }
+    return { count, topics };
+  }
+
+  function attemptCount() {
+    return Object.keys(JSON.parse(localStorage.getItem('attempts') || '{}')).length;
+  }
+
+  function accuracy() {
+    const attempts = JSON.parse(localStorage.getItem('attempts') || '{}');
+    const vals = Object.values(attempts);
+    if (!vals.length) return 0;
+    const correct = vals.reduce((a,b) => a + (b.correct ? 1 : 0), 0);
+    return Math.round((correct / vals.length) * 100);
+  }
+
+  function updateStats() {
+    const { count, topics } = allQuestionsCount();
+    els.statQuestions.textContent = count;
+    els.statSubjects.textContent = Object.keys(data.subjects).length;
+    els.statTopics.textContent = topics;
+    els.statAccuracy.textContent = accuracy() + '%';
+    els.progressSummary.textContent = `${attemptCount()} answered • ${accuracy()}% accuracy`;
+  }
+
+  function renderSubjectCards(container, filter='') {
+    const q = filter.trim().toLowerCase();
+    container.innerHTML = '';
+    Object.entries(data.subjects).forEach(([name, subject]) => {
+      if (q && !name.toLowerCase().includes(q)) return;
+      const total = Object.values(subject.topics).reduce((a, b) => a + b.length, 0);
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-icon">${subject.icon}</div>
+        <div class="card-title">${name}</div>
+        <div class="card-text">${Object.keys(subject.topics).length} topic(s) · ${total} question(s)</div>
+        <div class="pill">Open subject</div>
+      `;
+      card.onclick = () => openSubject(name);
+      container.appendChild(card);
+    });
+  }
+
+  function renderTopics(subjectName) {
+    const subject = data.subjects[subjectName];
+    if (!subject) return;
+    els.topicSubjectTitle.textContent = subjectName;
+    els.topicCrumbs.textContent = `Subjects › ${subjectName}`;
+    els.topicsGrid.innerHTML = '';
+    Object.entries(subject.topics).forEach(([topicName, qs]) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const pct = getTopicAccuracy(subjectName, topicName);
+      card.innerHTML = `
+        <div class="card-icon">📋</div>
+        <div class="card-title">${topicName}</div>
+        <div class="card-text">${qs.length} question(s)</div>
+        <div class="pill">${pct}% accuracy</div>
+      `;
+      card.onclick = () => startQuiz(subjectName, topicName);
+      els.topicsGrid.appendChild(card);
+    });
+  }
+
+  function renderNavigator() {
+    els.navigator.innerHTML = '';
+    const len = state.questions.length;
+    for (let i = 0; i < len; i++) {
+      const b = document.createElement('button');
+      b.className = 'qn';
+      b.textContent = i + 1;
+      if (i === state.current) b.classList.add('current');
+      if (state.answers[i] !== undefined) b.classList.add('answered');
+      if (state.bookmarks.has(i)) b.classList.add('bookmarked');
+      b.onclick = () => renderQuestion(i);
+      els.navigator.appendChild(b);
+    }
+  }
+
+  function updateNavigationHighlight(page) {
+    els.navButtons.forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  }
+
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${page}`).classList.add('active');
+    updateNavigationHighlight(page);
+    if (page === 'subjects' && !els.topicsSection.classList.contains('hidden')) {
+      // keep visible if opened
+    }
+    location.hash = page;
+  }
+
+  function getTopicAccuracy(subject, topic) {
+    const attempts = JSON.parse(localStorage.getItem('attempts') || '{}');
+    const keyPrefix = `${subject}::${topic}::`;
+    const list = Object.entries(attempts).filter(([k]) => k.startsWith(keyPrefix));
+    if (!list.length) return 0;
+    const good = list.reduce((a, [,v]) => a + (v.correct ? 1 : 0), 0);
+    return Math.round((good / list.length) * 100);
+  }
+
+  function openSubject(subjectName) {
+    els.topicsSection.classList.remove('hidden');
+    renderTopics(subjectName);
+    showPage('subjects');
+  }
+
+  function startQuiz(subjectName, topicName) {
+    const subject = data.subjects[subjectName];
+    const qs = subject?.topics?.[topicName] || [];
+    if (!qs.length) return;
+    state.subject = subjectName;
+    state.topic = topicName;
+    state.questions = qs.slice();
+    state.current = 0;
+    state.answers = {};
+    state.timeLeft = parseInt(localStorage.getItem('time_per_q') || '90', 10);
+    els.quizTitle.textContent = `${subjectName} · ${topicName}`;
+    els.quizCrumbs.textContent = `Subjects › ${subjectName} › ${topicName}`;
+    showPage('quiz');
+    startTimer();
+    renderQuestion(0);
+  }
+
+  function formatTime(sec) {
+    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function stopTimer() {
+    if (state.timer) clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  function startTimer() {
+    stopTimer();
+    state.timeLeft = parseInt(localStorage.getItem('time_per_q') || '90', 10);
+    els.timerText.textContent = `⏱ ${formatTime(state.timeLeft)}`;
+    state.timer = setInterval(() => {
+      state.timeLeft -= 1;
+      els.timerText.textContent = `⏱ ${formatTime(Math.max(0, state.timeLeft))}`;
+      if (state.timeLeft <= 0) {
+        nextQuestion();
+      }
+    }, 1000);
+  }
+
+  function renderQuestion(idx) {
+    const q = state.questions[idx];
+    if (!q) return;
+    state.current = idx;
+    els.qTag.textContent = `Q ${idx + 1} / ${state.questions.length}`;
+    els.progressFill.style.width = `${((idx + 1) / state.questions.length) * 100}%`;
+    els.questionText.textContent = q.question || '';
+    els.questionImageBox.style.display = q.image ? 'block' : 'none';
+    els.questionImageBox.innerHTML = q.image ? `<img src="${q.image}" alt="Question image">` : '';
+    els.optionsBox.innerHTML = '';
+    const letters = ['A','B','C','D','E','F'];
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      if (state.answers[idx] === i) btn.classList.add('selected');
+      if (state.answers[idx] !== undefined) {
+        btn.disabled = true;
+        if (i === q.answer) btn.classList.add('correct');
+        if (state.answers[idx] === i && i !== q.answer) btn.classList.add('wrong');
+      }
+      btn.innerHTML = `<span class="letter">${letters[i] || i+1}</span><span>${opt}</span>`;
+      btn.onclick = () => chooseAnswer(idx, i);
+      els.optionsBox.appendChild(btn);
+    });
+
+    els.explainBox.style.display = (state.answers[idx] !== undefined && state.explanationEnabled) ? 'block' : 'none';
+    els.explainBox.textContent = (state.answers[idx] !== undefined) ? (q.explanation || '') : '';
+    els.bookmarkQ.textContent = state.bookmarks.has(idx) ? '🔖 Bookmarked' : '🔖 Bookmark';
+    els.prevQ.disabled = idx === 0;
+    els.nextQ.classList.toggle('hidden', idx === state.questions.length - 1);
+    els.submitQ.classList.toggle('hidden', idx !== state.questions.length - 1);
+    renderNavigator();
+    startTimer();
+  }
+
+  function chooseAnswer(qIdx, optIdx) {
+    if (state.answers[qIdx] !== undefined) return;
+    state.answers[qIdx] = optIdx;
+    const q = state.questions[qIdx];
+    const correct = optIdx === q.answer;
+    const key = `${state.subject}::${state.topic}::${qIdx}`;
+    const attempts = JSON.parse(localStorage.getItem('attempts') || '{}');
+    attempts[key] = { correct, chosen: optIdx, answer: q.answer, topic: state.topic, subject: state.subject, time: Date.now() };
+    localStorage.setItem('attempts', JSON.stringify(attempts));
+    updateStats();
+    renderQuestion(qIdx);
+  }
+
+  function nextQuestion() {
+    if (state.current < state.questions.length - 1) {
+      renderQuestion(state.current + 1);
+    } else {
+      submitQuiz();
+    }
+  }
+  function prevQuestion() {
+    if (state.current > 0) renderQuestion(state.current - 1);
+  }
+
+  function submitQuiz() {
+    stopTimer();
+    const total = state.questions.length;
+    let correct = 0;
+    state.questions.forEach((q, i) => { if (state.answers[i] === q.answer) correct++; });
+    const pct = total ? Math.round((correct / total) * 100) : 0;
+    els.resultTitle.textContent = `${state.subject} · ${state.topic}`;
+    els.resultScore.textContent = `${pct}%`;
+    els.resCorrect.textContent = correct;
+    els.resWrong.textContent = total - correct;
+    els.resTotal.textContent = total;
+    els.resPct.textContent = `${pct}%`;
+    showPage('result');
+    updateStats();
+  }
+
+  function toggleBookmark() {
+    if (state.bookmarks.has(state.current)) state.bookmarks.delete(state.current);
+    else state.bookmarks.add(state.current);
+    localStorage.setItem('bookmarks', JSON.stringify([...state.bookmarks]));
+    renderQuestion(state.current);
+  }
+
+  function clearProgress() {
+    if (!confirm('Clear local progress on this browser?')) return;
+    ['attempts', 'bookmarks'].forEach(k => localStorage.removeItem(k));
+    updateStats();
+    alert('Cleared.');
+  }
+
+  function initLogin() {
+    const ok = sessionStorage.getItem('medprep_auth') === '1';
+    els.loginOverlay.classList.toggle('hidden', ok);
+    if (!ok) {
+      els.passwordInput.focus();
+    }
+  }
+
+  function tryLogin() {
+    if (els.passwordInput.value === APP_PASSWORD) {
+      sessionStorage.setItem('medprep_auth', '1');
+      els.loginOverlay.classList.add('hidden');
+    } else {
+      alert('Wrong password.');
+    }
+  }
+
+  // Events
+  els.loginBtn.onclick = tryLogin;
+  els.passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+  els.themeBtn.onclick = () => applyTheme(theme() === 'dark' ? 'light' : 'dark');
+  els.themeToggle.onclick = () => applyTheme(theme() === 'dark' ? 'light' : 'dark');
+  els.homeBtn.onclick = () => showPage('dashboard');
+  els.startBtn.onclick = () => startQuiz('Psychiatry', 'Schizophrenia');
+  els.goDashboardQuiz.onclick = () => startQuiz('Psychiatry', 'Schizophrenia');
+  els.backToSubjects.onclick = () => { els.topicsSection.classList.add('hidden'); };
+  els.exitQuizBtn.onclick = () => showPage('dashboard');
+  els.prevQ.onclick = prevQuestion;
+  els.nextQ.onclick = nextQuestion;
+  els.submitQ.onclick = submitQuiz;
+  els.bookmarkQ.onclick = toggleBookmark;
+  els.retryBtn.onclick = () => startQuiz(state.subject, state.topic);
+  els.clearDataBtn.onclick = clearProgress;
+  els.timeSelect.value = localStorage.getItem('time_per_q') || '90';
+  els.timeSelect.onchange = e => {
+    localStorage.setItem('time_per_q', e.target.value);
+    state.timeLeft = parseInt(e.target.value, 10);
+  };
+  els.expToggle.classList.toggle('on', state.explanationEnabled);
+  els.expToggle.onclick = () => {
+    state.explanationEnabled = !state.explanationEnabled;
+    localStorage.setItem('show_explanation', String(state.explanationEnabled));
+    els.expToggle.classList.toggle('on', state.explanationEnabled);
+    if (state.questions.length) renderQuestion(state.current);
+  };
+
+  document.querySelectorAll('[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.page === 'subjects') {
+        els.topicsSection.classList.add('hidden');
+      }
+      showPage(btn.dataset.page);
+    });
+  });
+
+  els.quickSubjects.forEach(btn => {
+    btn.onclick = () => openSubject(btn.dataset.subject);
+  });
+
+  els.subjectSearch.oninput = () => renderSubjectCards(els.subjectCards, els.subjectSearch.value);
+
+  window.addEventListener('hashchange', () => {
+    const p = (location.hash || '#dashboard').replace('#','');
+    if (['dashboard','subjects','quiz','result','settings'].includes(p)) showPage(p);
+  });
+
+  // Init
+  renderSubjectCards(els.subjectCards);
+  renderSubjectCards(els.subjectsGrid);
+  updateStats();
+  initLogin();
+  const initialPage = (location.hash || '#dashboard').replace('#','');
+  if (['dashboard','subjects','quiz','result','settings'].includes(initialPage)) showPage(initialPage);
+  else showPage('dashboard');
+  // Keep topics hidden on load
+  els.topicsSection.classList.add('hidden');
+})();
+</script>
 </body>
 </html>
